@@ -40,3 +40,26 @@ study-planning-agent/
 ├─ .gitignore           # 忽略 venv / .env / 缓存
 ├─ requirements.txt     # 依赖列表
 └─ main.py              # Agent 主程序入口
+## 🧩 代码结构说明
+
+本项目采用模块化结构，核心代码位于 `agent` 包中：
+
+- `agent/client.py`  
+  负责加载 `.env` 配置（API Key、Base URL、模型名称），创建 DeepSeek 客户端实例 `client`，对外提供统一的模型调用入口。
+
+- `agent/prompts.py`  
+  定义系统提示词 `SYSTEM_PROMPT`，约束模型的人设与输出格式；提供 `build_user_prompt(info)` 将用户输入的结构化信息转换为自然语言 Prompt。
+
+- `agent/input_handler.py`  
+  封装所有命令行交互逻辑，包括学习目标、天数、每日学习时间、当前水平与学习方向的输入，并做基础的类型转换与默认值处理。
+
+- `agent/json_utils.py`  
+  负责从模型的完整文本输出中提取 JSON 片段，并使用 `json.loads` 进行解析与校验；当解析失败时返回原始文本作为兜底。
+
+- `agent/planner.py`  
+  核心“规划器”模块：调用 DeepSeek 模型，拼接 system + user 消息，获取模型输出后交给 `json_utils` 解析，最终组合成带有说明与格式化 JSON 的完整结果字符串。
+
+- `main.py`  
+  项目入口，仅负责整体流程：循环收集用户输入 → 调用 `generate_plan` 生成学习计划 → 将结果输出到终端。
+
+这种拆分方式便于后续扩展（例如增加 Web 界面、接入 n8n/Dify 工作流、多 Agent 协同等），同时也让项目结构更接近真实工程实践。
